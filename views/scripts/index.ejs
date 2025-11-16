@@ -1,0 +1,78 @@
+<% const extraStyles = '<link href="/dashboard/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">'; %>
+<% const extraScripts = `
+  <script src="/dashboard/vendor/datatables/jquery.dataTables.min.js"></script>
+  <script src="/dashboard/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+  <script>
+    $(function () {
+      $('#scriptsTable').DataTable({
+        order: [[3, 'desc']]
+      });
+    });
+  </script>
+`; %>
+<%- include('../partials/head', { pageTitle: pageTitle || 'Scripts', extraStyles }) %>
+<%- include('../partials/sidebar') %>
+
+<div id="content-wrapper" class="d-flex flex-column">
+  <div id="content">
+    <%- include('../partials/topbar') %>
+
+    <div class="container-fluid">
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Scripts</h1>
+        <a href="/admin/scripts/new" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus fa-sm text-white-50"></i> Create Script
+        </a>
+      </div>
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Script List</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" id="scriptsTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Script URL</th>
+                  <th>Created At</th>
+                  <th>Updated At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% scripts.forEach(function(script) { %>
+                  <tr>
+                    <td><%= script.name %></td>
+                    <td><%= script.description || '-' %></td>
+                    <td>
+                      <a href="<%= script.scriptUrl %>" target="_blank"><%= script.scriptUrl %></a>
+                    </td>
+                    <td><%= script.createdAt.toLocaleString() %></td>
+                    <td><%= script.updatedAt.toLocaleString() %></td>
+                    <td>
+                      <a href="/admin/scripts/<%= script.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
+                      <form action="/admin/scripts/<%= script.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this script?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+</div>
+
+</div>
+
+<%- include('../partials/scroll-top') %>
+<%- include('../partials/logout-modal') %>
+<%- include('../partials/scripts', { extraScripts }) %>

@@ -1,0 +1,94 @@
+<% const extraStyles = '<link href="/dashboard/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">'; %>
+<% const extraScripts = `
+  <script src="/dashboard/vendor/datatables/jquery.dataTables.min.js"></script>
+  <script src="/dashboard/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#licensesTable').DataTable({
+        order: [[7, 'desc']]
+      });
+    });
+  </script>
+`; %>
+<%- include('../partials/head', { pageTitle: pageTitle || 'Licenses', extraStyles }) %>
+<%- include('../partials/sidebar') %>
+
+<!-- Content Wrapper -->
+<div id="content-wrapper" class="d-flex flex-column">
+
+  <!-- Main Content -->
+  <div id="content">
+
+    <%- include('../partials/topbar') %>
+
+    <div class="container-fluid">
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Licenses</h1>
+        <a href="/admin/licenses/new" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus fa-sm text-white-50"></i> Create License
+        </a>
+      </div>
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">License List</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" id="licensesTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>License Key</th>
+                  <th>Script</th>
+                  <th>Bound User</th>
+                  <th>Bound Device</th>
+                  <th>Max Devices</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                  <th>Updated At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% licenses.forEach(function(license) { %>
+                  <tr>
+                    <td><%= license.licenseKey %></td>
+                    <td>
+                      <div><strong><%= license.script ? license.script.name : '-' %></strong></div>
+                      <% if (license.script && license.script.scriptUrl) { %>
+                        <div><a href="<%= license.script.scriptUrl %>" target="_blank">Download</a></div>
+                      <% } %>
+                    </td>
+                    <td><%= license.boundUserid || '-' %></td>
+                    <td><%= license.boundDeviceId || '-' %></td>
+                    <td><%= license.maxDevices %></td>
+                    <td><%= license.expiryDate ? new Date(license.expiryDate).toLocaleString() : 'Unlimited' %></td>
+                    <td><span class="badge badge-<%= license.status === 'active' ? 'success' : (license.status === 'banned' ? 'danger' : 'warning') %> text-uppercase"><%= license.status %></span></td>
+                    <td><%= license.createdAt.toLocaleString() %></td>
+                    <td><%= license.updatedAt.toLocaleString() %></td>
+                    <td>
+                      <a href="/admin/licenses/<%= license.id %>" class="btn btn-sm btn-info">Detail</a>
+                      <a href="/admin/licenses/<%= license.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <%- include('../partials/footer') %>
+
+</div>
+
+</div>
+
+<%- include('../partials/scroll-top') %>
+<%- include('../partials/logout-modal') %>
+<%- include('../partials/scripts', { extraScripts }) %>

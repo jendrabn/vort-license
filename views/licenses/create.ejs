@@ -1,0 +1,100 @@
+<% const extraScripts = `
+  <script>
+    async function generateLicenseKey() {
+      try {
+        const response = await fetch('/admin/licenses/generate-key');
+        const data = await response.json();
+        document.getElementById('licenseKeyInput').value = data.key;
+      } catch (error) {
+        alert('Failed to generate license key');
+      }
+    }
+  </script>
+`; %>
+<%- include('../partials/head', { pageTitle: pageTitle || 'Create License' }) %>
+<%- include('../partials/sidebar') %>
+
+<div id="content-wrapper" class="d-flex flex-column">
+  <div id="content">
+    <%- include('../partials/topbar') %>
+
+    <div class="container-fluid">
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create License</h1>
+        <a href="/admin/licenses" class="btn btn-secondary btn-sm">Back to list</a>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">License Data</h6>
+            </div>
+            <div class="card-body">
+              <% if (error) { %>
+                <div class="alert alert-danger"><%= error %></div>
+              <% } %>
+              <form method="post" action="/admin/licenses">
+                <div class="form-group">
+                  <label>License Key</label>
+                  <div class="input-group">
+                    <input type="text" id="licenseKeyInput" class="form-control" name="licenseKey" placeholder="Leave empty to auto-generate" value="<%= formData.licenseKey %>">
+                    <div class="input-group-append">
+                      <button class="btn btn-outline-primary" type="button" onclick="generateLicenseKey()">Generate</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Script</label>
+                  <select class="form-control" name="scriptId" <%= scripts.length ? '' : 'disabled' %> required>
+                    <option value="">Select a script</option>
+                    <% scripts.forEach(function(script) { %>
+                      <option value="<%= script.id %>" <%= formData.scriptId === script.id ? 'selected' : '' %>><%= script.name %></option>
+                    <% }) %>
+                  </select>
+                  <% if (!scripts.length) { %>
+                    <small class="text-danger">No scripts available. Please create script entries first.</small>
+                  <% } else { %>
+                    <small class="form-text text-muted">Scripts are managed from the scripts master data.</small>
+                  <% } %>
+                </div>
+
+                <div class="form-group">
+                  <label>Max Devices</label>
+                  <input type="number" class="form-control" name="maxDevices" min="1" value="<%= formData.maxDevices %>" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Expiry Date</label>
+                  <input type="datetime-local" class="form-control" name="expiryDate" value="<%= formData.expiryDate ? formData.expiryDate : '' %>">
+                  <small class="form-text text-muted">Leave empty for unlimited.</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Status</label>
+                  <select class="form-control" name="status">
+                    <option value="active" <%= formData.status === 'active' ? 'selected' : '' %>>Active</option>
+                    <option value="banned" <%= formData.status === 'banned' ? 'selected' : '' %>>Banned</option>
+                    <option value="expired" <%= formData.status === 'expired' ? 'selected' : '' %>>Expired</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create License</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+</div>
+
+</div>
+
+<%- include('../partials/scroll-top') %>
+<%- include('../partials/logout-modal') %>
+<%- include('../partials/scripts', { extraScripts }) %>

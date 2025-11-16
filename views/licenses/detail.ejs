@@ -1,0 +1,130 @@
+<% const extraScripts = `
+  <script src="/dashboard/vendor/datatables/jquery.dataTables.min.js"></script>
+  <script src="/dashboard/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#sessionsTable').DataTable();
+    });
+  </script>
+`; %>
+<% const extraStyles = '<link href="/dashboard/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">'; %>
+<%- include('../partials/head', { pageTitle: pageTitle || 'License Detail', extraStyles }) %>
+<%- include('../partials/sidebar') %>
+
+<div id="content-wrapper" class="d-flex flex-column">
+  <div id="content">
+    <%- include('../partials/topbar') %>
+
+    <div class="container-fluid">
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">License <%= license.licenseKey %></h1>
+        <div>
+          <a href="/admin/licenses/<%= license.id %>/edit" class="btn btn-secondary btn-sm">Edit License</a>
+          <form action="/admin/licenses/<%= license.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this license?')">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+              <h6 class="m-0 font-weight-bold text-primary">License Info</h6>
+            </div>
+            <div class="card-body">
+              <p><strong>License Key:</strong> <%= license.licenseKey %></p>
+              <p><strong>Script Name:</strong> <%= license.script ? license.script.name : '-' %></p>
+              <p><strong>Script URL:</strong>
+                <% if (license.script && license.script.scriptUrl) { %>
+                  <a href="<%= license.script.scriptUrl %>" target="_blank"><%= license.script.scriptUrl %></a>
+                <% } else { %>
+                  <span>-</span>
+                <% } %>
+              </p>
+              <% if (license.script && license.script.description) { %>
+                <p><strong>Description:</strong> <%= license.script.description %></p>
+              <% } %>
+              <p><strong>Status:</strong> <span class="badge badge-<%= license.status === 'active' ? 'success' : (license.status === 'banned' ? 'danger' : 'warning') %> text-uppercase"><%= license.status %></span></p>
+              <p><strong>Max Devices:</strong> <%= license.maxDevices %></p>
+              <p><strong>Expiry Date:</strong> <%= license.expiryDate ? new Date(license.expiryDate).toLocaleString() : 'Unlimited' %></p>
+              <p><strong>Created At:</strong> <%= license.createdAt.toLocaleString() %></p>
+              <p><strong>Updated At:</strong> <%= license.updatedAt.toLocaleString() %></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+              <h6 class="m-0 font-weight-bold text-primary">Binding</h6>
+            </div>
+            <div class="card-body">
+              <p><strong>Bound UserID:</strong> <%= license.boundUserid || '-' %></p>
+              <p><strong>Bound Device:</strong> <%= license.boundDeviceId || '-' %></p>
+              <div class="mb-3">
+                <form action="/admin/licenses/<%= license.id %>/reset-binding" method="post">
+                  <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Reset binding for this license?')">Reset Device Binding</button>
+                </form>
+              </div>
+              <div>
+                <% if (license.status === 'banned') { %>
+                  <form action="/admin/licenses/<%= license.id %>/unban" method="post">
+                    <button type="submit" class="btn btn-success btn-sm">Unban License</button>
+                  </form>
+                <% } else { %>
+                  <form action="/admin/licenses/<%= license.id %>/ban" method="post">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Ban this license?')">Ban License</button>
+                  </form>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Active Sessions</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" id="sessionsTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Device ID</th>
+                  <th>Expires At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (license.activeSessions && license.activeSessions.length) { %>
+                  <% license.activeSessions.forEach(function(session) { %>
+                    <tr>
+                      <td><%= session.userId %></td>
+                      <td><%= session.deviceId %></td>
+                      <td><%= new Date(Number(session.expiryTimestamp)).toLocaleString() %></td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="3" class="text-center">No active sessions</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+</div>
+
+</div>
+
+<%- include('../partials/scroll-top') %>
+<%- include('../partials/logout-modal') %>
+<%- include('../partials/scripts', { extraScripts }) %>

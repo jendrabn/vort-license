@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  user
+}
+
+enum LicenseStatus {
+  active
+  banned
+  expired
+}
+
+model User {
+  id                         String   @id @default(uuid()) @db.Char(36)
+  username                   String   @unique @db.VarChar(50)
+  email                      String   @unique @db.VarChar(255)
+  passwordHash               String   @map("password_hash") @db.VarChar(255)
+  role                       UserRole @default(user)
+  resetPasswordToken         String?  @map("reset_password_token") @db.VarChar(255)
+  resetPasswordTokenExpiry   DateTime? @map("reset_password_token_expires")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Script {
+  id          String   @id @default(uuid()) @db.Char(36)
+  name        String   @db.VarChar(255)
+  scriptUrl   String   @map("script_url") @db.VarChar(255)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  licenses License[]
+
+  @@map("scripts")
+}
+
+model License {
+  id            String           @id @default(uuid()) @db.Char(36)
+  licenseKey    String           @unique @map("license_key") @db.VarChar(100)
+  status        LicenseStatus    @default(active)
+  expiryDate    DateTime?        @map("expiry_date")
+  boundUserid   String?          @map("bound_userid") @db.VarChar(100)
+  boundDeviceId String?          @map("bound_device_id") @db.VarChar(255)
+  maxDevices    Int              @default(1) @map("max_devices")
+  scriptId      String           @map("script_id") @db.Char(36)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  script         Script          @relation(fields: [scriptId], references: [id])
+  activeSessions ActiveSession[]
+  logs           LicenseLog[]
+
+  @@map("licenses")
+  @@index([scriptId])
+}
+
+model ActiveSession {
+  id              String   @id @default(uuid()) @db.Char(36)
+  licenseKey      String   @map("license_key") @db.VarChar(100)
+  userId          String   @map("user_id") @db.VarChar(100)
+  deviceId        String   @map("device_id") @db.VarChar(255)
+  expiryTimestamp BigInt   @map("expiry_timestamp")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  license License @relation(fields: [licenseKey], references: [licenseKey])
+
+  @@map("active_sessions")
+  @@index([licenseKey])
+  @@index([userId])
+  @@index([deviceId])
+  @@unique([licenseKey, userId, deviceId], name: "licenseKey_userId_deviceId")
+}
+
+model LicenseLog {
+  id         String   @id @default(uuid()) @db.Char(36)
+  licenseKey String   @map("license_key") @db.VarChar(100)
+  userId     String?  @map("user_id") @db.VarChar(100)
+  deviceId   String?  @map("device_id") @db.VarChar(255)
+  action     String   @db.VarChar(50)
+  message    String   @db.VarChar(255)
+  timestamp  DateTime @default(now())
+
+  license License @relation(fields: [licenseKey], references: [licenseKey])
+
+  @@map("license_logs")
+  @@index([licenseKey])
+}

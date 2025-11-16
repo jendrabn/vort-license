@@ -1,0 +1,90 @@
+<% const extraScripts = `
+  <script>
+    async function regenerateLicenseKey() {
+      try {
+        const response = await fetch('/admin/licenses/generate-key');
+        const data = await response.json();
+        alert('License keys cannot be changed. Generated: ' + data.key);
+      } catch (error) {
+        alert('Failed to generate license key');
+      }
+    }
+  </script>
+`; %>
+<%- include('../partials/head', { pageTitle: pageTitle || 'Edit License' }) %>
+<%- include('../partials/sidebar') %>
+
+<div id="content-wrapper" class="d-flex flex-column">
+  <div id="content">
+    <%- include('../partials/topbar') %>
+
+    <div class="container-fluid">
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Edit License</h1>
+        <a href="/admin/licenses/<%= license.id %>" class="btn btn-secondary btn-sm">Back to detail</a>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">License <%= license.licenseKey %></h6>
+            </div>
+            <div class="card-body">
+              <% if (error) { %>
+                <div class="alert alert-danger"><%= error %></div>
+              <% } %>
+              <form method="post" action="/admin/licenses/<%= license.id %>">
+                <div class="form-group">
+                  <label>License Key</label>
+                  <input type="text" class="form-control" value="<%= license.licenseKey %>" disabled>
+                  <small class="form-text text-muted">License key cannot be changed.</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Script</label>
+                  <select class="form-control" name="scriptId" required>
+                    <% scripts.forEach(function(script) { %>
+                      <option value="<%= script.id %>" <%= (typeof selectedScriptId !== 'undefined' && selectedScriptId ? selectedScriptId : license.scriptId) === script.id ? 'selected' : '' %>><%= script.name %></option>
+                    <% }) %>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Max Devices</label>
+                  <input type="number" class="form-control" name="maxDevices" min="1" value="<%= license.maxDevices %>" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Expiry Date</label>
+                  <input type="datetime-local" class="form-control" name="expiryDate" value="<%= license.expiryDate ? new Date(license.expiryDate).toISOString().slice(0,16) : '' %>">
+                  <small class="form-text text-muted">Leave empty for unlimited.</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Status</label>
+                  <select class="form-control" name="status">
+                    <option value="active" <%= license.status === 'active' ? 'selected' : '' %>>Active</option>
+                    <option value="banned" <%= license.status === 'banned' ? 'selected' : '' %>>Banned</option>
+                    <option value="expired" <%= license.status === 'expired' ? 'selected' : '' %>>Expired</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update License</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+</div>
+
+</div>
+
+<%- include('../partials/scroll-top') %>
+<%- include('../partials/logout-modal') %>
+<%- include('../partials/scripts', { extraScripts }) %>

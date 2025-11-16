@@ -1,0 +1,62 @@
+<%- include('../partials/head', { pageTitle: pageTitle || 'Create Script' }) %>
+<%- include('../partials/sidebar') %>
+
+<div id="content-wrapper" class="d-flex flex-column">
+  <div id="content">
+    <%- include('../partials/topbar') %>
+
+    <div class="container-fluid">
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create Script</h1>
+        <a href="/admin/scripts" class="btn btn-secondary btn-sm">Back to list</a>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Script Details</h6>
+            </div>
+            <div class="card-body">
+              <% if (error) { %>
+                <div class="alert alert-danger"><%= error %></div>
+              <% } %>
+              <form method="post" action="/admin/scripts" enctype="multipart/form-data">
+                <div class="form-group">
+                  <label>Script Name</label>
+                  <input type="text" class="form-control" name="name" value="<%= formData.name %>" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Script URL</label>
+                  <input type="url" class="form-control" name="scriptUrl" value="<%= formData.scriptUrl %>" placeholder="https://example.com/script.bin">
+                </div>
+
+                <div class="form-group">
+                  <label>Or Upload File</label>
+                  <input type="file" class="form-control-file" name="scriptFile" accept=".lua,.bin,.dll,.txt,.js,.zip">
+                  <small class="form-text text-muted">Either provide a URL or upload a file (uploaded files are served from /uploads/scripts).</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Description</label>
+                  <textarea class="form-control" name="description" rows="3"><%= formData.description %></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create Script</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+</div>
+
+</div>
+
+<%- include('../partials/scroll-top') %>
+<%- include('../partials/logout-modal') %>
+<%- include('../partials/scripts') %>
