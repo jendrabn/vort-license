@@ -6,12 +6,11 @@ import {
   updateLicenseSchema
 } from '../../validators/license.validator';
 import { ServiceError } from '../errors';
-
 export interface LicenseFormData {
   licenseKey: string;
   maxDevices: number;
   status: string;
-  expiryDate: string;
+  days: number | '';
   scriptId: string;
 }
 
@@ -37,7 +36,7 @@ export function getDefaultLicenseFormData(overrides: Partial<LicenseFormData> = 
     licenseKey: '',
     maxDevices: 1,
     status: 'active',
-    expiryDate: '',
+    days: 30,
     scriptId: '',
     ...overrides
   };
@@ -65,8 +64,8 @@ export async function createLicense(input: unknown) {
     throw new ServiceError(parsed.error.issues[0]?.message ?? 'Invalid input', {
       licenseKey: (input as Record<string, unknown>)?.licenseKey ?? '',
       maxDevices: (input as Record<string, unknown>)?.maxDevices ?? 1,
+      days: Number((input as Record<string, unknown>)?.days ?? 0) || '',
       status: (input as Record<string, unknown>)?.status ?? 'active',
-      expiryDate: (input as Record<string, unknown>)?.expiryDate ?? '',
       scriptId: (input as Record<string, unknown>)?.scriptId ?? ''
     });
   }
@@ -80,7 +79,8 @@ export async function createLicense(input: unknown) {
     licenseKey,
     maxDevices: data.maxDevices,
     status: data.status,
-    expiryDate: data.expiryDate ?? null,
+    expiryDate: null,
+    days: data.days ?? null,
     script: {
       connect: {
         id: data.scriptId
@@ -97,8 +97,8 @@ export async function createLicense(input: unknown) {
     throw new ServiceError(message, {
       licenseKey,
       maxDevices: data.maxDevices,
+      days: data.days ?? '',
       status: data.status,
-      expiryDate: data.expiryDate ?? '',
       scriptId: data.scriptId
     });
   }
@@ -129,8 +129,8 @@ export async function updateLicense(id: string, input: unknown) {
   if (!parsed.success) {
     throw new ServiceError(parsed.error.issues[0]?.message ?? 'Invalid input', {
       maxDevices: (input as Record<string, unknown>)?.maxDevices ?? 1,
+      days: Number((input as Record<string, unknown>)?.days ?? 0) || '',
       status: (input as Record<string, unknown>)?.status ?? 'active',
-      expiryDate: (input as Record<string, unknown>)?.expiryDate ?? '',
       scriptId: (input as Record<string, unknown>)?.scriptId ?? ''
     });
   }
@@ -140,7 +140,7 @@ export async function updateLicense(id: string, input: unknown) {
   const updateData: Prisma.LicenseUpdateInput = {
     maxDevices: data.maxDevices,
     status: data.status,
-    expiryDate: data.expiryDate ?? null,
+    days: data.days ?? null,
     script: {
       connect: {
         id: data.scriptId
@@ -157,11 +157,34 @@ export async function updateLicense(id: string, input: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update license';
     throw new ServiceError(message, {
       maxDevices: data.maxDevices,
+      days: data.days ?? '',
       status: data.status,
-      expiryDate: data.expiryDate ?? '',
       scriptId: data.scriptId
     });
   }
+}
+
+export async function duplicateLicense(id: string) {
+  const license = await prisma.license.findUnique({ where: { id } });
+
+  if (!license) {
+    return null;
+  }
+
+  const licenseKey = generateLicenseKey();
+
+  return prisma.license.create({
+    data: {
+      licenseKey,
+      maxDevices: license.maxDevices,
+      status: license.status,
+      days: license.days,
+      expiryDate: null,
+      script: {
+        connect: { id: license.scriptId }
+      }
+    }
+  });
 }
 
 export async function resetBinding(id: string) {

@@ -4,6 +4,7 @@ import prisma from '../../config/prismaClient';
 import { validateAuthPayload } from '../../validators/api/auth.validator';
 import { ServiceError } from '../errors';
 import { encryptText } from '../../utils/crypto';
+import env from '../../config/env';
 
 const TOKEN_DURATION_MS = 3 * 60 * 1000;
 
@@ -35,6 +36,10 @@ export async function issueToken(payload: unknown) {
     throw error('license, bot_userid, and hwid are required.');
   }
 
+  if (!env.encryptionKey || env.encryptionKey.trim().length === 0) {
+    throw error('Encryption key is not configured.');
+  }
+
   const { license: licenseKey, bot_userid: botUserId, hwid } = parsed.data;
 
   const license = await prisma.license.findUnique({
@@ -50,7 +55,9 @@ export async function issueToken(payload: unknown) {
     return failWithLog('License is not active.', licenseKey, botUserId, hwid);
   }
 
-  if (license.expiryDate && license.expiryDate.getTime() < Date.now()) {
+  const now = Date.now();
+
+  if (license.expiryDate && license.expiryDate.getTime() < now) {
     return failWithLog('License expired.', licenseKey, botUserId, hwid);
   }
 
@@ -91,7 +98,11 @@ export async function issueToken(payload: unknown) {
   }
 
   const token = crypto.randomBytes(16).toString('hex');
-  const expiresAt = Date.now() + TOKEN_DURATION_MS;
+  const expiresAt = now + TOKEN_DURATION_MS;
+
+  if (!license.expiryDate && typeof license.days === 'number') {
+    updates.expiryDate = new Date(now + license.days * 24 * 60 * 60 * 1000);
+  }
 
   const operations = [];
 

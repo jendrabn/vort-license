@@ -3,11 +3,20 @@ import { ServiceError } from '../../services/errors';
 import * as licenseService from '../../services/admin/license.service';
 
 function normalizeLicenseFormData(data?: Record<string, unknown>) {
+  const rawDays = data?.days;
+  let days: number | '' = '';
+
+  if (typeof rawDays === 'number') {
+    days = rawDays;
+  } else if (typeof rawDays === 'string') {
+    days = Number(rawDays);
+  }
+
   return licenseService.getDefaultLicenseFormData({
     licenseKey: (data?.licenseKey as string) ?? '',
     maxDevices: Number(data?.maxDevices ?? 1),
     status: (data?.status as string) ?? 'active',
-    expiryDate: (data?.expiryDate as string) ?? '',
+    days,
     scriptId: (data?.scriptId as string) ?? ''
   });
 }
@@ -128,7 +137,7 @@ export async function updateLicense(req: Request, res: Response) {
           ...license,
           maxDevices: Number(formData.maxDevices ?? license.maxDevices),
           status: formData.status || license.status,
-          expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : license.expiryDate
+          days: typeof formData.days === 'number' ? formData.days : license.days
         },
         activePage: 'licenses'
       });
@@ -171,4 +180,20 @@ export async function deleteLicense(req: Request, res: Response) {
   const { id } = req.params;
   await licenseService.deleteLicense(id);
   return res.redirect('/admin/licenses');
+}
+
+export async function duplicateLicense(req: Request, res: Response) {
+  const { id } = req.params;
+
+  try {
+    const duplicated = await licenseService.duplicateLicense(id);
+
+    if (!duplicated) {
+      return res.redirect('/admin/licenses');
+    }
+
+    return res.redirect(`/admin/licenses/${duplicated.id}`);
+  } catch (error) {
+    return res.redirect('/admin/licenses');
+  }
 }

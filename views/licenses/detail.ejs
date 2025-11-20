@@ -16,15 +16,18 @@
     <%- include('../partials/topbar') %>
 
     <div class="container-fluid">
-      <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">License <%= license.licenseKey %></h1>
-        <div>
-          <a href="/admin/licenses/<%= license.id %>/edit" class="btn btn-secondary btn-sm">Edit License</a>
-          <form action="/admin/licenses/<%= license.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this license?')">
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-          </form>
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <h1 class="h3 mb-0 text-gray-800">License <%= license.licenseKey %></h1>
+          <div>
+            <a href="/admin/licenses/<%= license.id %>/edit" class="btn btn-secondary btn-sm">Edit License</a>
+            <form action="/admin/licenses/<%= license.id %>/duplicate" method="post" class="d-inline" onsubmit="return confirm('Duplicate this license?')">
+              <button type="submit" class="btn btn-warning btn-sm">Duplicate</button>
+            </form>
+            <form action="/admin/licenses/<%= license.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this license?')">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </div>
         </div>
-      </div>
 
       <div class="row">
         <div class="col-lg-6">
@@ -47,7 +50,8 @@
               <% } %>
               <p><strong>Status:</strong> <span class="badge badge-<%= license.status === 'active' ? 'success' : (license.status === 'banned' ? 'danger' : 'warning') %> text-uppercase"><%= license.status %></span></p>
               <p><strong>Max Devices:</strong> <%= license.maxDevices %></p>
-              <p><strong>Expiry Date:</strong> <%= license.expiryDate ? new Date(license.expiryDate).toLocaleString() : 'Unlimited' %></p>
+              <p><strong>Days:</strong> <%= typeof license.days === 'number' ? license.days : '-' %></p>
+              <p><strong>Expiry Date:</strong> <%= license.expiryDate ? new Date(license.expiryDate).toLocaleString() : '-' %></p>
               <p><strong>Created At:</strong> <%= license.createdAt.toLocaleString() %></p>
               <p><strong>Updated At:</strong> <%= license.updatedAt.toLocaleString() %></p>
             </div>

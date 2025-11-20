@@ -5,7 +5,7 @@
   <script>
     $(document).ready(function () {
       $('#licensesTable').DataTable({
-        order: [[7, 'desc']]
+        order: [[8, 'desc']]
       });
     });
   </script>
@@ -43,6 +43,7 @@
                   <th>Bound User</th>
                   <th>Bound Device</th>
                   <th>Max Devices</th>
+                  <th>Days</th>
                   <th>Expiry</th>
                   <th>Status</th>
                   <th>Created At</th>
@@ -63,13 +64,17 @@
                     <td><%= license.boundUserid || '-' %></td>
                     <td><%= license.boundDeviceId || '-' %></td>
                     <td><%= license.maxDevices %></td>
-                    <td><%= license.expiryDate ? new Date(license.expiryDate).toLocaleString() : 'Unlimited' %></td>
+                    <td><%= typeof license.days === 'number' ? license.days : '-' %></td>
+                    <td><%= license.expiryDate ? new Date(license.expiryDate).toLocaleString() : '-' %></td>
                     <td><span class="badge badge-<%= license.status === 'active' ? 'success' : (license.status === 'banned' ? 'danger' : 'warning') %> text-uppercase"><%= license.status %></span></td>
                     <td><%= license.createdAt.toLocaleString() %></td>
                     <td><%= license.updatedAt.toLocaleString() %></td>
                     <td>
                       <a href="/admin/licenses/<%= license.id %>" class="btn btn-sm btn-info">Detail</a>
                       <a href="/admin/licenses/<%= license.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
+                      <form action="/admin/licenses/<%= license.id %>/duplicate" method="post" class="d-inline" onsubmit="return confirm('Duplicate this license?')">
+                        <button type="submit" class="btn btn-sm btn-warning">Duplicate</button>
+                      </form>
                     </td>
                   </tr>
                 <% }) %>

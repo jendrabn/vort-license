@@ -33,6 +33,7 @@ CREATE TABLE `licenses` (
     `license_key` VARCHAR(100) NOT NULL,
     `status` ENUM('active', 'banned', 'expired') NOT NULL DEFAULT 'active',
     `expiry_date` DATETIME(3) NULL,
+    `days` INTEGER NULL,
     `bound_userid` VARCHAR(100) NULL,
     `bound_device_id` VARCHAR(255) NULL,
     `max_devices` INTEGER NOT NULL DEFAULT 1,
@@ -58,6 +59,7 @@ CREATE TABLE `active_sessions` (
     INDEX `active_sessions_license_key_idx`(`license_key`),
     INDEX `active_sessions_user_id_idx`(`user_id`),
     INDEX `active_sessions_device_id_idx`(`device_id`),
+    UNIQUE INDEX `active_sessions_license_key_user_id_device_id_key`(`license_key`, `user_id`, `device_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

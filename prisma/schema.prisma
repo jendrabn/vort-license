@@ -56,6 +56,7 @@ model License {
   licenseKey    String           @unique @map("license_key") @db.VarChar(100)
   status        LicenseStatus    @default(active)
   expiryDate    DateTime?        @map("expiry_date")
+  days          Int?
   boundUserid   String?          @map("bound_userid") @db.VarChar(100)
   boundDeviceId String?          @map("bound_device_id") @db.VarChar(255)
   maxDevices    Int              @default(1) @map("max_devices")

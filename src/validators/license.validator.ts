@@ -7,30 +7,22 @@ const maxDevicesField = z.preprocess(
   z.number().int().positive('Max devices must be at least 1')
 );
 
-const expiryDateField = z.preprocess((val) => {
-  if (val === '' || val === null || typeof val === 'undefined') {
-    return undefined;
-  }
-  if (typeof val === 'string') {
-    return new Date(val);
-  }
-  if (val instanceof Date) {
-    return val;
-  }
-  return undefined;
-}, z.date().optional());
+const daysField = z.preprocess(
+  (val) => (typeof val === 'string' ? Number(val) : val),
+  z.number().int().positive('Days must be at least 1')
+);
 
 export const createLicenseSchema = z.object({
   licenseKey: z.string().trim().optional(),
   scriptId: z.string().min(1, 'Script is required'),
   maxDevices: maxDevicesField.default(1),
-  status: statusEnum.default('active'),
-  expiryDate: expiryDateField
+  days: daysField,
+  status: statusEnum.default('active')
 });
 
 export const updateLicenseSchema = z.object({
   scriptId: z.string().min(1, 'Script is required'),
   maxDevices: maxDevicesField.default(1),
-  status: statusEnum.default('active'),
-  expiryDate: expiryDateField
+  days: daysField,
+  status: statusEnum.default('active')
 });

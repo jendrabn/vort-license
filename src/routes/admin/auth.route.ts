@@ -61,6 +61,7 @@ licenseRouter.post('/:id/reset-binding', licenseController.resetBinding);
 licenseRouter.post('/:id/ban', licenseController.banLicense);
 licenseRouter.post('/:id/unban', licenseController.unbanLicense);
 licenseRouter.post('/:id/delete', licenseController.deleteLicense);
+licenseRouter.post('/:id/duplicate', licenseController.duplicateLicense);
 
 router.use('/licenses', adminAuthMiddleware, licenseRouter);
 
