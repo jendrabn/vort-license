@@ -33,14 +33,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(
-  "/docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { explorer: true })
-);
-app.get(["/docs.json", "/swagger.json", "/api-docs.json"], (_req, res) =>
-  res.json(swaggerSpec)
-);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+app.get("/api/docs.json", (_req, res) => res.json(swaggerSpec));
 
 app.use(express.static(publicDir));
 
