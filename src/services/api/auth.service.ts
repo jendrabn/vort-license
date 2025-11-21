@@ -100,8 +100,12 @@ export async function issueToken(payload: unknown) {
   const token = crypto.randomBytes(16).toString('hex');
   const expiresAt = now + TOKEN_DURATION_MS;
 
-  if (!license.expiryDate && typeof license.days === 'number') {
-    updates.expiryDate = new Date(now + license.days * 24 * 60 * 60 * 1000);
+  const expiryDateToSet = !license.expiryDate && typeof license.days === 'number'
+    ? new Date(now + license.days * 24 * 60 * 60 * 1000)
+    : null;
+
+  if (expiryDateToSet) {
+    updates.expiryDate = expiryDateToSet;
   }
 
   const operations = [];
@@ -138,6 +142,15 @@ export async function issueToken(payload: unknown) {
   }
 
   await prisma.$transaction(operations);
+
+  // Safety net: if the transaction succeeded but expiry was not updated (e.g., stale client/schema),
+  // ensure expiryDate is persisted when we expected to set it.
+  if (expiryDateToSet) {
+    await prisma.license.update({
+      where: { id: license.id },
+      data: { expiryDate: expiryDateToSet }
+    });
+  }
 
   await logAction(licenseKey, 'success', 'Token issued', botUserId, hwid);
 
